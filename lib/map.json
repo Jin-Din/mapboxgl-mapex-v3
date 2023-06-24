@@ -6,6 +6,13 @@
   "minZoom": 1,
   "maxZoom": 17,
   "dragRotate": true,
+  "templateValues": {
+    "terrainServer": "http://10.61.128.135/mars3d-data"
+  },
+  "glyphs": "mapbox://fonts/mapbox/{fontstack}/{range}.pbf",
+  "terrain": {
+    "mapbox-dem": { "type": "raster-dem", "url": "mapbox://mapbox.mapbox-terrain-dem-v1", "tileSize": 512, "maxzoom": 10 }
+  },
   "token": {
     "default": "xxxxxx",
     "tianditu": "xxxxxx",
@@ -60,7 +67,18 @@
             "name": "影像底图",
             "type": "raster",
             "source": "tdtsximg",
-
+            "metadata": {
+              "isBaseMap": true
+            },
+            "layout": {
+              "visibility": "visible"
+            }
+          },
+          {
+            "id": "tdtsximglabel-layer",
+            "name": "注记",
+            "type": "raster",
+            "source": "tdtsximglabel",
             "metadata": {
               "isBaseMap": true
             },
@@ -72,16 +90,9 @@
       },
       "subLayers": [
         {
-          "id": "tdtsximglabel-layer",
-          "name": "注记",
-          "type": "raster",
-          "source": "tdtsximglabel",
-          "metadata": {
-            "isBaseMap": true
-          },
-          "layout": {
-            "visibility": "visible"
-          }
+          "id": "tdtsximglabel",
+          "name": "地名",
+          "layerIds": ["tdtsximglabel-layer"]
         }
       ]
     },
@@ -116,22 +127,27 @@
             "layout": {
               "visibility": "visible"
             }
+          },
+          {
+            "id": "tianditu_cia_c_layer",
+            "name": "注记",
+            "type": "raster",
+            "source": "tianditu_cia_c_source",
+            "metadata": {
+              "isBaseMap": true
+            },
+            "layout": {
+              "visibility": "visible"
+            }
           }
         ]
       },
 
       "subLayers": [
         {
-          "id": "tianditu_cia_c_layer",
+          "id": "tianditu_cia_c",
           "name": "注记",
-          "type": "raster",
-          "source": "tianditu_cia_c_source",
-          "metadata": {
-            "isBaseMap": true
-          },
-          "layout": {
-            "visibility": "visible"
-          }
+          "layerIds": ["tianditu_cia_c_layer"]
         }
       ]
     }
