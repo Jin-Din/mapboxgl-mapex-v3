@@ -14,7 +14,7 @@ import ElementPlus from "element-plus";
 // import { Input, Autocomplete, Card, Tooltip } from "element-plus";
 import "element-plus/theme-chalk/index.css";
 import "./dark.css"; //自定义样式
-import zhCn from "element-plus/dist/locale/zh-cn"; //本地化
+// import zhCn from "element-plus/dist/locale/zh-cn"; //本地化
 import * as ElementPlusIconsVue from "@element-plus/icons-vue";
 import { App } from "vue";
 
