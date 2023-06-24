@@ -75,6 +75,25 @@ export class Map extends mapboxgl.Map {
     this.on("load", () => {
       // 加载后初始化默认图层
       this.initDefaultEmptyLayers();
+      // TODO:【可改进】以下是将含在底图组你的非底图的图层移出底图组
+      try {
+        let [id, index] = this.getFirstBaseMapSplitedLayerId();
+        let afterId = this.getLayerIdAfter(id);
+
+        let { layers = [] } = this.getStyle();
+        // 在base组内获取所有非底图的图层
+        let unBaseLayers =
+          layers
+            .slice(0, index)
+            .filter((anylayer) => {
+              return this.isUnBaseLayer(anylayer);
+            })
+            .map((item) => item.id) ?? [];
+        //遍历加载到
+        unBaseLayers.reverse().forEach((layerid) => {
+          this.getLayer(layerid) && this.moveLayer(layerid, afterId);
+        });
+      } catch {}
     });
   }
 
@@ -313,7 +332,7 @@ export class Map extends mapboxgl.Map {
       };
       await this.addStyle(vectorStyle, optMetadata);
     } else {
-      let { sources, layers, terrain } = styleJson as Style;
+      let { sources, layers = [], terrain } = styleJson as Style;
       //添加数据源
       // @ts-ignore
       Object.keys(sources).forEach((key) => {
@@ -323,25 +342,26 @@ export class Map extends mapboxgl.Map {
         }
       });
 
-      let { isBaseMap } = optMetadata;
-      if (layers)
-        //添加图层
-        for (const layer of layers) {
-          let layerid = layer.id;
-          // 修订：图层元数据metadata合并，加入顶层option.metadata配置
-          let { metadata } = layer as Layer;
-          //替换原来的metadata
-          (layer as Layer).metadata = metadata ? { ...optMetadata, ...metadata } : optMetadata;
-
-          if (!this.getStyle() || !this.getLayer(layerid)) {
-            let firstSpeLayer = this.safeAddBaseMapSplitedLayer();
-            if (isBaseMap && firstSpeLayer) {
-              this.addLayer(layer, firstSpeLayer.id);
-            } else {
-              this.addLayer(layer);
-            }
+      //添加图层
+      for (const layer of layers) {
+        let layerid = layer.id;
+        // 修订：图层元数据metadata合并，加入顶层option.metadata配置
+        let { metadata } = layer as Layer;
+        //替换原来的metadata
+        (layer as Layer).metadata = metadata ? { ...optMetadata, ...metadata } : optMetadata;
+        let { isBaseMap } = (layer as Layer).metadata;
+        // console.log(`layer:${layer.id}->meta.isBaseMap->${(layer as Layer).metadata.isBaseMap}`);
+        if (!this.getStyle() || !this.getLayer(layerid)) {
+          let firstSpeLayer = this.safeAddBaseMapSplitedLayer();
+          if (isBaseMap && firstSpeLayer) {
+            // console.log(`${firstSpeLayer.id}.layer:${layer.id}->meta.isBaseMap->${(layer as Layer).metadata.isBaseMap}`);
+            this.addLayer(layer, firstSpeLayer.id);
+          } else {
+            // console.log(`no:layer:${layer.id}->meta.isBaseMap->${(layer as Layer).metadata.isBaseMap}`);
+            this.addLayer(layer);
           }
         }
+      }
 
       //配置地形
       if (!!terrain) this.setTerrain(terrain);
@@ -376,71 +396,70 @@ export class Map extends mapboxgl.Map {
 
     let splitedLayer = this.safeAddBaseMapSplitedLayer(); //限定在分割层之内
 
-    let { layers } = this.getStyle();
-    if (layers) {
-      let index = layers.findIndex((item) => item.id == splitedLayer?.id);
-      //获取所有待删除图层集
-      let removedLayers = layers.slice(0, index).filter((anylayer) => {
-        let metadata = (anylayer as Layer).metadata as ISLayerCustomMetadata;
-        return !metadata || metadata.isBaseMap === undefined || metadata.isBaseMap === true;
-      });
-      // console.log("待删除图层ids");
-      // console.log(removedLayers.map((item) => item.id));
-      //查找非底图(metadata.isBaseMap==false)图层集
-      // 修复: metadata 有值且 值为false 才能保留
-      let stayinLayers = layers.filter((anylayer) => {
-        let metadata = (anylayer as Layer).metadata as ISLayerCustomMetadata;
-        return metadata && metadata.isBaseMap != undefined && metadata.isBaseMap === false;
-      });
-      // console.log("待保留图层ids");
-      // console.log(stayinLayers.map((item) => item.id));
-      //待删除的sourceid
-      let readyToRemovedSourceIds: string[] = [];
-      removedLayers.forEach((anylayer) => {
-        //收集被删除layer对应的source
-        if (Object.keys(anylayer).includes("source")) {
-          let removedSource = (anylayer as Layer).source;
-          if (removedSource && typeof removedSource === "string" && !readyToRemovedSourceIds.includes(removedSource)) {
-            readyToRemovedSourceIds.push(removedSource);
-          }
-        }
-      });
-      // console.log("待删除sourceids");
-      // console.log(readyToRemovedSourceIds);
+    let { layers = [] } = this.getStyle();
 
-      //待保留的source 。
-      //TODO: 地形数据源保留
-      let stayinSourceIds: string[] = [];
-      stayinLayers.forEach((anylayer) => {
-        //收集被删除layer对应的source
-        if (Object.keys(anylayer).includes("source")) {
-          let stayinSource = (anylayer as Layer).source;
-          if (stayinSource && typeof stayinSource === "string" && !stayinSourceIds.includes(stayinSource)) {
-            stayinSourceIds.push(stayinSource);
-          }
-        }
-      });
-      // console.log("待保留sourceids");
-      // console.log(stayinSourceIds);
-
+    let index = layers.findIndex((item) => item.id == splitedLayer?.id);
+    //获取所有待删除图层集
+    let removedLayers = layers.slice(0, index).filter((anylayer) => {
+      let metadata = (anylayer as Layer).metadata as ISLayerCustomMetadata;
+      return !metadata || metadata.isBaseMap === undefined || metadata.isBaseMap === true;
+    });
+    // console.log("待删除图层ids");
+    // console.log(removedLayers.map((item) => item.id));
+    //查找非底图(metadata.isBaseMap==false)图层集
+    // 修复: metadata 有值且 值为false 才能保留
+    let stayinLayers = layers.filter((anylayer) => {
+      let metadata = (anylayer as Layer).metadata as ISLayerCustomMetadata;
+      return metadata && metadata.isBaseMap != undefined && metadata.isBaseMap === false;
+    });
+    // console.log("待保留图层ids");
+    // console.log(stayinLayers.map((item) => item.id));
+    //待删除的sourceid
+    let readyToRemovedSourceIds: string[] = [];
+    removedLayers.forEach((anylayer) => {
       //收集被删除layer对应的source
-      //去重，求差
-      // let removeSourceIds: string[] = [];
-      let removeSourceIds = Array.from(new Set(readyToRemovedSourceIds)).filter((item) => {
-        // console.log(Array.from(new Set(stayinSourceIds)).includes(item));
-        return !Array.from(new Set(stayinSourceIds)).includes(item);
-      });
-
-      //删除图层
-      for (const anylayer of removedLayers) {
-        //删除图层
-        this.removeLayer(anylayer.id);
+      if (Object.keys(anylayer).includes("source")) {
+        let removedSource = (anylayer as Layer).source;
+        if (removedSource && typeof removedSource === "string" && !readyToRemovedSourceIds.includes(removedSource)) {
+          readyToRemovedSourceIds.push(removedSource);
+        }
       }
-      //同步删除对应的source
-      removeSourceIds.forEach((item) => {
-        if (item && this.getSource(item)) this.removeSource(item);
-      });
+    });
+    // console.log("待删除sourceids");
+    // console.log(readyToRemovedSourceIds);
+
+    //待保留的source 。
+    //TODO: 地形数据源保留
+    let stayinSourceIds: string[] = [];
+    stayinLayers.forEach((anylayer) => {
+      //收集被删除layer对应的source
+      if (Object.keys(anylayer).includes("source")) {
+        let stayinSource = (anylayer as Layer).source;
+        if (stayinSource && typeof stayinSource === "string" && !stayinSourceIds.includes(stayinSource)) {
+          stayinSourceIds.push(stayinSource);
+        }
+      }
+    });
+    // console.log("待保留sourceids");
+    // console.log(stayinSourceIds);
+
+    //收集被删除layer对应的source
+    //去重，求差
+    // let removeSourceIds: string[] = [];
+    let removeSourceIds = Array.from(new Set(readyToRemovedSourceIds)).filter((item) => {
+      // console.log(Array.from(new Set(stayinSourceIds)).includes(item));
+      return !Array.from(new Set(stayinSourceIds)).includes(item);
+    });
+
+    //删除图层
+    for (const anylayer of removedLayers) {
+      //删除图层
+      this.removeLayer(anylayer.id);
     }
+    //同步删除对应的source
+    removeSourceIds.forEach((item) => {
+      if (item && this.getSource(item)) this.removeSource(item);
+    });
   };
   /**
    * [自定义方法]查找第一个非底图的图层。内置的 BASEMAP_SPLITED_LAYER 图层

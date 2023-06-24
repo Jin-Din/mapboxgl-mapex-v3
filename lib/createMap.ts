@@ -27,6 +27,10 @@ export type tokenType = "default" | "tianditu" | "tdtsx_img" | "tdtsx_img_label"
 export type EPSG = "4490" | "3857" | "4326";
 export interface ISToken extends Partial<Record<tokenType, string | undefined>> {}
 
+export interface ISOverLayers {
+  sources: Sources;
+  layers: ISSubLayer[];
+}
 export interface ISCustomMapOptions {
   epsg?: EPSG;
   sprite?: string | string[]; //雪碧图(暂留)
@@ -36,10 +40,7 @@ export interface ISCustomMapOptions {
   glyphs?: string; //默认的glyphs
   current?: string;
   baseMaps?: (ISBaseMap | string)[];
-  overLayers?: {
-    sources: Sources;
-    layers: ISSubLayer[];
-  };
+  overLayers?: ISOverLayers;
 }
 export type ISMapConfig = MapboxOptions & ISCustomMapOptions;
 
@@ -96,28 +97,31 @@ let storeStyles: Record<string, Style | string | undefined> = {};
 
 async function _createMap(options?: MapboxOptions): Promise<Map> {
   let { style, ...others } = options!;
-  let newStyle = await rebuildStyle(style!, _mapConfig as ISCustomMapOptions);
+  //公共的资源，如 terrain、glyphs、overlayers等 合并到初始的style中
+  let newStyle = await rebuildStyle(style!, _mapConfig);
   options = { ...others, style: newStyle };
   _map = new Map(options);
   //挂载地图初始化完成事件，加入overlayers图层。【设计上有待改善，是否应该剥离出去，不“污染”原来设计的功能】
-  _map.on("load", () => {
-    //加载overlayers
-    let { overLayers } = _mapConfig;
-    if (overLayers) {
-      let { sources, layers } = overLayers;
-      for (const key in sources) {
-        _map.addSourceEx(key, sources[key]);
-      }
-      layers.forEach((layer) => {
-        if (!_map.getLayer(layer.id)) _map.addLayer(layer as AnyLayer);
-      });
-    }
-  });
+  // _map.on("load", () => {
+  //   //加载overlayers
+  //   let { overLayers } = _mapConfig;
+  //   if (overLayers) {
+  //     let { sources, layers } = overLayers;
+  //     for (const key in sources) {
+  //       _map.addSourceEx(key, sources[key]);
+  //     }
+  //     layers.forEach((layer) => {
+  //       if (!_map.getLayer(layer.id)) _map.addLayer(layer as AnyLayer);
+  //     });
+  //   }
+  // });
   return _map;
 }
 
-async function rebuildStyle(style: string | Style, configEx: ISCustomMapOptions = {}): Promise<Style> {
-  let { glyphs: defaultGlyphs, terrain = {} } = configEx;
+async function rebuildStyle(style: string | Style, configEx: Pick<ISCustomMapOptions, "glyphs" | "terrain" | "overLayers"> = {}): Promise<Style> {
+  let { glyphs: defaultGlyphs, terrain = {}, overLayers } = configEx;
+  // console.log(terrain);
+
   // 初始化加载时，默认加入glyphs,terrain
   if (typeof style === "string") {
     //TODO:请求返回结果后合并 glyphs,terrain
@@ -126,11 +130,17 @@ async function rebuildStyle(style: string | Style, configEx: ISCustomMapOptions 
 
     return rebuildStyle(result as unknown as Style, configEx);
   } else {
-    let { sources = {}, glyphs, ...otherItems } = style!;
-    sources = { ...terrain, ...sources };
+    let { sources = {}, layers, glyphs, ...otherItems } = style!;
+    // get overlayers 的 sources、layers，合并到style
+    let { sources: oSources = {}, layers: oLayers = [] } = overLayers ?? {};
+
+    sources = { ...terrain, ...sources, ...oSources };
+    layers = [...layers, ...(oLayers as AnyLayer[])]; //overlayer 放最上面
+    // console.log(layers.map((i) => i.id));
+
     glyphs = glyphs ?? defaultGlyphs;
     // glyphs 为空时，不能赋值， glyphs:undefined 也不行
-    style = glyphs ? { ...otherItems, sources, glyphs, version: 8 } : { ...otherItems, sources, version: 8 };
+    style = glyphs ? { ...otherItems, sources, layers, glyphs, version: 8 } : { ...otherItems, sources, layers, version: 8 };
   }
   return style as Style;
 }
@@ -211,24 +221,22 @@ export const useBaseMapState = () => {
  * 存储配置文件中的所有style
  * @param mapConfig
  */
-const toStoreStyles = (mapConfig: ISMapConfig) => {
-  let { current, baseMaps, style } = mapConfig;
-  if (baseMaps) {
-    baseMaps.forEach((basemap: string | ISBaseMap) => {
-      let baseMapItem = parseBasemItem(basemap);
-      storeStyles[baseMapItem.id] = baseMapItem.style;
-      // if (typeof basemap === "string") {
-      //   // 只有名字，则默认他是使用了内置地图
-      //   let basemapStyle = getInnerBasemapItem(basemap as string).style;
-      //   storeStyles[basemap] = basemapStyle;
-      // } else {
-      //   storeStyles[basemap.id] = parseBasemItemToStyle(basemap as ISBaseMap);
-      // }
-    });
+const toStoreStyles = async (mapConfig: ISMapConfig) => {
+  let { current, baseMaps = [], style } = mapConfig;
+
+  // 注意：forEach 不支持 await,用for....in 或 for...of
+  for (const basemap of baseMaps) {
+    let baseMapItem = parseBasemItem(basemap);
+    //把公共的合并到每一个的style里
+    // TODO： 如果对 mapconfig.terrain 的source 能够处理好，初次加载后不被删除，这里以下代码就不用再处理一次
+    let newStyle = await rebuildStyle(baseMapItem.style!, _mapConfig as ISCustomMapOptions);
+    storeStyles[baseMapItem.id] = newStyle;
   }
+
   //如果设置了style，则将默认的也存储起来
   if (style) {
-    storeStyles[innerDefaultStyleId] = style;
+    let newStyle = await rebuildStyle(style, _mapConfig as ISCustomMapOptions);
+    storeStyles[innerDefaultStyleId] = newStyle;
   } else {
     //style 为空的情况,再次添加一个使用 current的style
     if (current && Object.keys(storeStyles)?.includes(current)) storeStyles[innerDefaultStyleId] = storeStyles[current];
@@ -251,10 +259,9 @@ export const switchBaseMap = async (baseMapItemId: string) => {
   if (!storeStyles || !Object.keys(storeStyles).includes(baseMapItemId)) return { previousId, currentId };
 
   currentBaseMapId.value = currentId = baseMapItemId;
-  // TODO:判断，如果style 是string 地址,请求解析地址，并将默认的 terrain、sprite、glyphs 合并进去
-  let style = storeStyles[baseMapItemId];
-  let newStyle = await rebuildStyle(style!, _mapConfig as ISCustomMapOptions);
-  storeStyles[baseMapItemId] = newStyle as Style;
+  // 此处的style 已经被处理过了。（默认的 terrain、sprite、glyphs 已经合并进去）
+  // let style = storeStyles[baseMapItemId];
+  // storeStyles[baseMapItemId] = style as Style;
 
   _map.changeBaseMapStyle(storeStyles[baseMapItemId]);
   return {

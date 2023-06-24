@@ -255,7 +255,7 @@
     "sources": {
       "shaanxi_boundy_source": {
         "type": "geojson",
-        "data": "/data/shaanxi.json"
+        "data": "${appUrl}/data/shaanxi.json"
       }
     },
     "layers": [
@@ -266,7 +266,7 @@
         "source": "shaanxi_boundy_source",
         "paint": {
           "line-color": "#04d4e3",
-          "line-width": ["interpolate", ["linear"], ["zoom"], 12, 20, 14, 15]
+          "line-width": ["interpolate", ["linear"], ["zoom"], 12, 5, 14, 3]
         }
       }
     ]

@@ -5,6 +5,7 @@
  * @LastEditors:
  * @LastEditTime: 2022-06-23 16:49:34
  */
+import { templateParser } from "@lib/utils";
 import axios from "axios";
 // import { ElMessage } from "element-plus";
 // import "element-plus/theme-chalk/index.css";
@@ -58,7 +59,18 @@ axios.interceptors.request.use(
 axios.interceptors.response.use(
   (response) => {
     //响应拦截
-    return response;
+    //返回的结果进行地址解析，对与返回的数据字符串中含有 ${appUrl} 的替换为 程序发布的地址
+    try {
+      let { data } = response;
+
+      // 模板值替换
+      let dataString = JSON.stringify(data);
+      // appUrl 替换并解析回对象
+      response.data = JSON.parse(templateParser(dataString, { appUrl: getUrl("") }));
+    } catch {
+    } finally {
+      return response;
+    }
   },
   (error) => {
     // ElMessage.error({

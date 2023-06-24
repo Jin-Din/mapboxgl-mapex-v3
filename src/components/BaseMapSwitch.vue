@@ -41,7 +41,7 @@ import "animate.css";
 
 import { ref, onMounted } from "vue";
 import { Map } from "@lib/mapEx";
-import { ISBaseMap, ISMapConfig, switchBaseMap, useBaseMapState } from "@lib/index";
+import { ISBaseMap, ISMapConfig, ISSubLayer, switchBaseMap, useBaseMapState } from "@lib/index";
 // import { Map } from "@jindin/mapboxgl-mapex";
 // import { ISBaseMap, ISMapConfig, ISLayer, switchBaseMap, ISRasterBaseMap, useBaseMapState } from "@jindin/mapboxgl-mapex";
 let baseMapsGroupVisible = ref(false);
@@ -111,12 +111,25 @@ const getDefaultBaseMapInfo = (input: ISBaseMap | string) => {
 };
 
 const subLayers = computed(() => {
-  if (!selectedBaseMapItem.value) return [];
+  let sLayers = [] as ISSubLayer[];
+  if (props.mapConfig && props.mapConfig.overLayers?.layers) {
+    //合并当前底图中的sublayers 和 overlayers 中layers
+    sLayers = props.mapConfig?.overLayers.layers;
+    sLayers.forEach((item) => {
+      if (props.map) item.visible = !!(props.map.getLayer(item.id) && props.map.getLayoutProperty(item.id, "visibility") === "visible");
+    });
+    console.log(sLayers);
+  }
+
+  if (!selectedBaseMapItem.value) return sLayers;
   if (selectedBaseMapItem.value?.hasOwnProperty("subLayers")) {
     let selectedBasemap = selectedBaseMapItem.value;
     if (!selectedBasemap.subLayers) return [];
-    return selectedBasemap.subLayers;
-  } else return [];
+    let { subLayers } = selectedBasemap;
+
+    sLayers = [...sLayers, ...subLayers];
+    return sLayers;
+  } else return sLayers;
 });
 
 watch(
@@ -179,7 +192,7 @@ watch(checkedSubLayerIds, (newValue, oldValue) => {
 watch(
   () => subLayers.value,
   (newValue, oldValue) => {
-    checkedSubLayerIds.value = newValue.filter((item) => item.visible).map((layer) => layer.id);
+    if (newValue) checkedSubLayerIds.value = newValue.filter((item) => item.visible).map((layer) => layer.id);
   },
   {
     immediate: true,
@@ -246,8 +259,11 @@ const handleChangeLayerVisible = (checkedIds: any[]) => {
   if (props.map) {
     checkedIds.forEach((chkid) => {
       let sublayerItem = subLayers.value.find((item) => item.id === chkid);
-      if (!sublayerItem || !sublayerItem.layerIds) return;
-      let { layerIds } = sublayerItem;
+      if (!sublayerItem) return;
+      // 本身就是图层id
+      if (props.map.getLayer(sublayerItem.id)) props.map.setLayoutProperty(sublayerItem.id, "visibility", "visible");
+
+      let { layerIds = [] } = sublayerItem;
       let arrayLayerIds = [];
       if (typeof layerIds === "string") {
         arrayLayerIds = layerIds.split(",");
@@ -259,8 +275,11 @@ const handleChangeLayerVisible = (checkedIds: any[]) => {
     });
     uncheckedIds.forEach((uchkid: string) => {
       let sublayerItem = subLayers.value.find((item) => item.id === uchkid);
-      if (!sublayerItem || !sublayerItem.layerIds) return;
-      let { layerIds } = sublayerItem;
+      if (!sublayerItem) return;
+      // 本身就是图层id
+      if (props.map.getLayer(sublayerItem.id)) props.map.setLayoutProperty(sublayerItem.id, "visibility", "none");
+
+      let { layerIds = [] } = sublayerItem;
       let arrayLayerIds = [];
       if (typeof layerIds === "string") {
         arrayLayerIds = layerIds.split(",");

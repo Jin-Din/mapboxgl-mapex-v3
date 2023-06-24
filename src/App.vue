@@ -154,10 +154,12 @@ const maploaded = (mapInstance: Map) => {
   filter: drop-shadow(0 0 2em #42b883aa);
 }
 .terrain-control {
-  position: cursor;
+  cursor: pointer;
+
   width: 30px;
   height: 30px;
   background-color: gray;
+  margin-left: auto;
 }
 .isTerrain {
   background-color: aquamarine;
