@@ -75,7 +75,7 @@ export default defineConfig(({ command, mode }) => {
 
       rollupOptions: {
         // 确保外部化处理那些你不想打包进库的依赖
-        // external: ["vue"],
+        external: ["element-plus"],
 
         output: {
           // format: 'es', // 默认es，可选 'amd' 'cjs' 'es' 'iife' 'umd' 'system'

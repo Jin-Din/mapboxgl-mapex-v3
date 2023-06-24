@@ -41,7 +41,7 @@ import "animate.css";
 
 import { ref, onMounted } from "vue";
 import { Map } from "@lib/mapEx";
-import { ISBaseMap, ISMapConfig, ISSubLayer, switchBaseMap, ISRasterBaseMap, useBaseMapState } from "@lib/index";
+import { ISBaseMap, ISMapConfig, switchBaseMap, useBaseMapState } from "@lib/index";
 // import { Map } from "@jindin/mapboxgl-mapex";
 // import { ISBaseMap, ISMapConfig, ISLayer, switchBaseMap, ISRasterBaseMap, useBaseMapState } from "@jindin/mapboxgl-mapex";
 let baseMapsGroupVisible = ref(false);
