@@ -2,7 +2,7 @@
   "name": "@jindin/mapboxgl-mapex",
   "description": "mapboxgl地图对象功能扩展(可适用于天地图陕西的mapbox-gl api)",
   "private": false,
-  "version": "2.1.0",
+  "version": "3.0.0",
   "type": "module",
   "files": [
     "dist/lib",
