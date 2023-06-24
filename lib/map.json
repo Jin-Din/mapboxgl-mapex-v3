@@ -1,0 +1,139 @@
+{
+  "epsg": "4490",
+  "center": [108.74, 35.5],
+  "zoom": 6.2,
+  "pitch": 0,
+  "minZoom": 1,
+  "maxZoom": 17,
+  "dragRotate": true,
+  "token": {
+    "default": "xxxxxx",
+    "tianditu": "xxxxxx",
+    "tdtsx_img": "xxxxx",
+    "tdtsx_img_label": "xxxx"
+  },
+  "current": "default",
+  "baseMaps": [
+    "default",
+    {
+      "id": "blue",
+      "name": "蓝色",
+      "icon": "/img/vector.png",
+      "type": "vector"
+    },
+    {
+      "id": "black",
+      "name": "黑色",
+      "icon": "/img/vector.png",
+      "type": "vector",
+      "style": "https://shaanxi.tianditu.gov.cn/ServiceSystem/Tile/rest/service/sxww2022Geo/token/VectorTileServer/styles/black.json"
+    },
+
+    {
+      "id": "gray",
+      "name": "灰色",
+      "icon": "/img/vector.png",
+      "type": "vector",
+      "style": "https://shaanxi.tianditu.gov.cn/ServiceSystem/Tile/rest/service/sxww2022Geo/token/VectorTileServer/styles/gray.json"
+    },
+    {
+      "id": "tianditu_sx_img",
+      "name": "影像",
+      "type": "raster",
+      "icon": "/img/tdt_img.png",
+      "style": {
+        "sources": {
+          "tdtsximg": {
+            "type": "raster",
+            "tiles": ["https://shaanxi.tianditu.gov.cn/ServiceSystem/Tile/rest/service/SxImgMap/EnReRSzwLy7CEU3P/TileServer/tile/{z}/{y}/{x}"],
+            "tileSize": 256
+          },
+          "tdtsximglabel": {
+            "type": "raster",
+            "tiles": ["https://shaanxi.tianditu.gov.cn/ServiceSystem/Tile/rest/service/SxImgLabelMap/57UzDDga-N-4qyUW/TileServer/tile/{z}/{y}/{x}"],
+            "tileSize": 256
+          }
+        },
+        "layers": [
+          {
+            "id": "tdtsximg-layer",
+            "name": "影像底图",
+            "type": "raster",
+            "source": "tdtsximg",
+
+            "metadata": {
+              "isBaseMap": true
+            },
+            "layout": {
+              "visibility": "visible"
+            }
+          }
+        ]
+      },
+      "subLayers": [
+        {
+          "id": "tdtsximglabel-layer",
+          "name": "注记",
+          "type": "raster",
+          "source": "tdtsximglabel",
+          "metadata": {
+            "isBaseMap": true
+          },
+          "layout": {
+            "visibility": "visible"
+          }
+        }
+      ]
+    },
+    {
+      "id": "tianditu_img_c_group",
+      "name": "影像",
+      "type": "raster",
+      "icon": "/img/tdt_img.png",
+      "style": {
+        "sources": {
+          "tianditu_img_c_source": {
+            "type": "raster",
+            "tiles": ["https://t0.tianditu.gov.cn/DataServer?T=img_c&x={x}&y={y}&l={z}&tk=48ad25d128061c24f00559d481310004"],
+            "tileSize": 256
+          },
+          "tianditu_cia_c_source": {
+            "type": "raster",
+            "tiles": ["https://t0.tianditu.gov.cn/DataServer?T=cia_c&x={x}&y={y}&l={z}&tk=48ad25d128061c24f00559d481310004"],
+            "tileSize": 256
+          }
+        },
+        "layers": [
+          {
+            "id": "tianditu_img_c_layer",
+            "name": "影像",
+            "type": "raster",
+            "source": "tianditu_img_c_source",
+
+            "metadata": {
+              "isBaseMap": true
+            },
+            "layout": {
+              "visibility": "visible"
+            }
+          }
+        ]
+      },
+
+      "subLayers": [
+        {
+          "id": "tianditu_cia_c_layer",
+          "name": "注记",
+          "type": "raster",
+          "source": "tianditu_cia_c_source",
+          "metadata": {
+            "isBaseMap": true
+          },
+          "layout": {
+            "visibility": "visible"
+          }
+        }
+      ]
+    }
+  ]
+}

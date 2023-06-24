@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<SpriteFile xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" CssFileName="../images" ImageName="theme" IsPhone="false" SpriteImgFileType="Png" xmlns="CssSprite">
+  <SpriteList>
+    <Sprite Path="森林公园.png" LocationX="0" LocationY="0" />
+    <Sprite Path="水稻.png" LocationX="56" LocationY="0" />
+    <Sprite Path="水滴.png" LocationX="112" LocationY="0" />
+    <Sprite Path="垃圾桶.png" LocationX="168" LocationY="0" />
+    <Sprite Path="垃圾站.png" LocationX="224" LocationY="0" />
+    <Sprite Path="农家乐.png" LocationX="280" LocationY="0" />
+    <Sprite Path="水电站.png" LocationX="336" LocationY="0" />
+    <Sprite Path="一般保护区.png" LocationX="392" LocationY="0" />
+    <Sprite Path="重点保护区.png" LocationX="448" LocationY="0" />
+    <Sprite Path="主要干道.png" LocationX="504" LocationY="0" />
+    <Sprite Path="水库.png" LocationX="560" LocationY="0" />
+    <Sprite Path="无人机.png" LocationX="616" LocationY="0" />
+    <Sprite Path="稀有动物.png" LocationX="672" LocationY="0" />
+    <Sprite Path="垃圾处理厂.png" LocationX="728" LocationY="0" />
+    <Sprite Path="公园.png" LocationX="784" LocationY="0" />
+    <Sprite Path="核心保护区.png" LocationX="840" LocationY="0" />
+    <Sprite Path="监控摄像头.png" LocationX="896" LocationY="0" />
+    <Sprite Path="地质灾害.png" LocationX="952" LocationY="0" />
+    <Sprite Path="保护区.png" LocationX="1008" LocationY="0" />
+    <Sprite Path="别墅.png" LocationX="1064" LocationY="0" />
+    <Sprite Path="不可移动文物管理.png" LocationX="1120" LocationY="0" />
+    <Sprite Path="矿山-已治理.png" LocationX="1176" LocationY="0" />
+    <Sprite Path="矿山-正在治理.png" LocationX="1232" LocationY="0" />
+    <Sprite Path="矿山-自然恢复.png" LocationX="1288" LocationY="0" />
+    <Sprite Path="矿山.png" LocationX="1344" LocationY="0" />
+    <Sprite Path="金属与非金属矿山事故.png" LocationX="1400" LocationY="0" />
+    <Sprite Path="建设控制地带.png" LocationX="1456" LocationY="0" />
+    <Sprite Path="山门.png" LocationX="1512" LocationY="0" />
+    <Sprite Path="晕带.png" LocationX="1577" LocationY="0" />
+  </SpriteList>
+</SpriteFile>

@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>mapboxgl-mapex 测试程序</title>
+    <!-- 支持 4490 4326 3857 ，不支持天地图陕西的加密矢量瓦片，不支持 4490 下的globe 模式 -->
+    <link href="/libs/mapbox-gl/mapbox-gl.css" rel="stylesheet" />
+    <!-- <script src="/libs/mapbox-gl/mapbox-gl.js"></script> -->
+
+    <link href="https://shaanxi.tianditu.gov.cn/vectormap/YouMapServer/JavaScriptLib/mapbox-gl.css" rel="stylesheet" />
+    <!-- <script src="https://shaanxi.tianditu.gov.cn/vectormap/YouMapServer/JavaScriptLib/mapbox-gl-cgcs2000.js"></script> -->
+    <script src="https://shaanxi.tianditu.gov.cn/vectormap/YouMapServer/JavaScriptLib/mapbox-gl.js"></script>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
