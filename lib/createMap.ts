@@ -100,6 +100,8 @@ async function _createMap(options?: MapboxOptions): Promise<Map> {
   //公共的资源，如 terrain、glyphs、overlayers等 合并到初始的style中
   let newStyle = await rebuildStyle(style!, _mapConfig);
   options = { ...others, style: newStyle };
+  console.log(options);
+
   _map = new Map(options);
   //挂载地图初始化完成事件，加入overlayers图层。【设计上有待改善，是否应该剥离出去，不“污染”原来设计的功能】
   // _map.on("load", () => {
@@ -126,6 +128,7 @@ async function rebuildStyle(style: string | Style, configEx: Pick<ISCustomMapOpt
   if (typeof style === "string") {
     //TODO:请求返回结果后合并 glyphs,terrain
     let [, result] = await fetchJson(style);
+    console.log(style);
     console.log(result);
 
     return rebuildStyle(result as unknown as Style, configEx);

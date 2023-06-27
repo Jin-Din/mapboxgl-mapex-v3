@@ -42,6 +42,7 @@ import "animate.css";
 import { ref, onMounted } from "vue";
 import { Map } from "@lib/mapEx";
 import { ISBaseMap, ISMapConfig, ISSubLayer, switchBaseMap, useBaseMapState } from "@lib/index";
+
 // import { Map } from "@jindin/mapboxgl-mapex";
 // import { ISBaseMap, ISMapConfig, ISLayer, switchBaseMap, ISRasterBaseMap, useBaseMapState } from "@jindin/mapboxgl-mapex";
 let baseMapsGroupVisible = ref(false);
@@ -110,26 +111,27 @@ const getDefaultBaseMapInfo = (input: ISBaseMap | string) => {
   return input as ISBaseMap;
 };
 
+/**
+ * 子图层
+ */
 const subLayers = computed(() => {
-  let sLayers = [] as ISSubLayer[];
+  let ovLayers = [] as ISSubLayer[];
   if (props.mapConfig && props.mapConfig.overLayers?.layers) {
     //合并当前底图中的sublayers 和 overlayers 中layers
-    sLayers = props.mapConfig?.overLayers.layers;
-    sLayers.forEach((item) => {
-      if (props.map) item.visible = !!(props.map.getLayer(item.id) && props.map.getLayoutProperty(item.id, "visibility") === "visible");
+    ovLayers = props.mapConfig?.overLayers.layers;
+    ovLayers.forEach((item) => {
+      item.visible = !item.layout || item.layout.visibility === "visible";
     });
-    console.log(sLayers);
   }
-
-  if (!selectedBaseMapItem.value) return sLayers;
   if (selectedBaseMapItem.value?.hasOwnProperty("subLayers")) {
     let selectedBasemap = selectedBaseMapItem.value;
-    if (!selectedBasemap.subLayers) return [];
-    let { subLayers } = selectedBasemap;
+    let { subLayers = [] } = selectedBasemap;
+    subLayers.forEach((layer) => (layer.visible = layer.visible ?? true)); // 默认没有设置时为true
+    ovLayers = [...ovLayers, ...subLayers]; //
+    console.log(ovLayers);
 
-    sLayers = [...sLayers, ...subLayers];
-    return sLayers;
-  } else return sLayers;
+    return ovLayers;
+  } else return ovLayers;
 });
 
 watch(
@@ -252,7 +254,10 @@ onMounted(() => {
     selectedBaseMapId.value = props.mapConfig.current!;
   }
 });
-
+/**
+ * 控制子图层开关
+ * @param checkedIds
+ */
 const handleChangeLayerVisible = (checkedIds: any[]) => {
   let allLayerIds = subLayers.value.map((item) => item.id);
   let uncheckedIds = subSet(allLayerIds, checkedIds); //两个数组取差
@@ -260,15 +265,18 @@ const handleChangeLayerVisible = (checkedIds: any[]) => {
     checkedIds.forEach((chkid) => {
       let sublayerItem = subLayers.value.find((item) => item.id === chkid);
       if (!sublayerItem) return;
-      // 本身就是图层id
-      if (props.map.getLayer(sublayerItem.id)) props.map.setLayoutProperty(sublayerItem.id, "visibility", "visible");
-
-      let { layerIds = [] } = sublayerItem;
       let arrayLayerIds = [];
+      let { layerIds = [] } = sublayerItem;
+
       if (typeof layerIds === "string") {
         arrayLayerIds = layerIds.split(",");
       } else arrayLayerIds = layerIds;
+      //对 arrayLayerIds 二次处理，主要处理包含有通配符*（如youmap-*）的图层
+      arrayLayerIds = findMatchedLayers(arrayLayerIds);
 
+      // 本身就是图层id
+      if (props.map.getLayer(sublayerItem.id)) arrayLayerIds.push(sublayerItem.id);
+      //统一处理
       arrayLayerIds.forEach((layerid) => {
         if (props.map.getLayer(layerid)) props.map.setLayoutProperty(layerid, "visibility", "visible");
       });
@@ -276,14 +284,18 @@ const handleChangeLayerVisible = (checkedIds: any[]) => {
     uncheckedIds.forEach((uchkid: string) => {
       let sublayerItem = subLayers.value.find((item) => item.id === uchkid);
       if (!sublayerItem) return;
-      // 本身就是图层id
-      if (props.map.getLayer(sublayerItem.id)) props.map.setLayoutProperty(sublayerItem.id, "visibility", "none");
 
-      let { layerIds = [] } = sublayerItem;
       let arrayLayerIds = [];
+      let { layerIds = [] } = sublayerItem;
       if (typeof layerIds === "string") {
         arrayLayerIds = layerIds.split(",");
       } else arrayLayerIds = layerIds;
+      arrayLayerIds = findMatchedLayers(arrayLayerIds);
+      // console.log(arrayLayerIds);
+      // 本身就是图层id
+      if (props.map.getLayer(sublayerItem.id)) arrayLayerIds.push(sublayerItem.id);
+
+      //统一处理
       arrayLayerIds.forEach((layerid) => {
         if (props.map.getLayer(layerid)) props.map.setLayoutProperty(layerid, "visibility", "none");
       });
@@ -303,6 +315,38 @@ const subSet = (arr1: string[], arr2: string[]) => {
     }
   }
   return subset;
+};
+/**
+ * 查找style中匹配layerid 的所有图层id， 如果含有*,? 通配符，也查询
+ * @param toMatchLayers
+ */
+const findMatchedLayers = (toMatchLayers: string[]): string[] => {
+  if (!props.map) return [];
+  let { layers } = props.map.getStyle();
+  return layers
+    .map((layerid) => layerid.id)
+    .filter((item) => {
+      return toMatchLayers.some((hit) => {
+        // if (hit === item) return true;
+        return match(hit, item);
+      });
+    });
+};
+/**
+ * 匹配通配符
+ * 如
+ * test("He*lo", "Hello"); // Yes
+ * test("He?lo*", "HelloWorld"); // Yes
+ * test("*pqrs", "pqrst"); // No because 't' is not in first
+ * test("abc*bcd", "abcdhghgbcd"); // Yes
+ * test("abc*c?d", "abcd"); // No because second must have 2 instances of 'c'
+ */
+const match = (reg: string, val: string): boolean => {
+  if (reg.length == 0 && val.length == 0) return true;
+  if (reg.length > 1 && reg[0] == "*" && val.length == 0) return false;
+  if ((reg.length > 1 && reg[0] == "?") || (reg.length != 0 && val.length != 0 && reg[0] == val[0])) return match(reg.substring(1), val.substring(1));
+  if (reg.length > 0 && reg[0] == "*") return match(reg.substring(1), val) || match(reg, val.substring(1));
+  return false;
 };
 </script>
 

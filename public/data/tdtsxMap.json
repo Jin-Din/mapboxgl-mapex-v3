@@ -1,13 +1,32 @@
 {
+  "templateValues": {
+    "default": "KLSZfloFZoYooU*g",
+    "SxImgMap": "qWAInhWf1YnKT-Up"
+  },
   "sources": {
     "youmap": {
       "tiles": ["https://shaanxi.tianditu.gov.cn/ServiceSystem/Tile/rest/service/sxww2022Geo/KLSZfloFZoYooU*g/VectorTileServer/tile/{z}/{x}/{y}"],
       "zoomOffset": 0,
-      "type": "vector"
+      "type": "vector",
+      "metadata": "youmap"
     },
     "tdtsximg": {
       "type": "raster",
       "tiles": ["https://shaanxi.tianditu.gov.cn/ServiceSystem/Tile/rest/service/SxImgMap/qWAInhWf1YnKT-Up/TileServer/tile/{z}/{y}/{x}"],
+      "tileSize": 256
+    },
+    "tdtimg": {
+      "type": "raster",
+      "tiles": [
+        "https://t0.tianditu.gov.cn/DataServer?T=img_c&x={x}&y={y}&l={z}&tk=3b659aefecf870a8390d6c77b8a4b8aa",
+        "https://t1.tianditu.gov.cn/DataServer?T=img_c&x={x}&y={y}&l={z}&tk=3b659aefecf870a8390d6c77b8a4b8aa",
+        "https://t2.tianditu.gov.cn/DataServer?T=img_c&x={x}&y={y}&l={z}&tk=3b659aefecf870a8390d6c77b8a4b8aa",
+        "https://t3.tianditu.gov.cn/DataServer?T=img_c&x={x}&y={y}&l={z}&tk=3b659aefecf870a8390d6c77b8a4b8aa",
+        "https://t4.tianditu.gov.cn/DataServer?T=img_c&x={x}&y={y}&l={z}&tk=3b659aefecf870a8390d6c77b8a4b8aa",
+        "https://t5.tianditu.gov.cn/DataServer?T=img_c&x={x}&y={y}&l={z}&tk=3b659aefecf870a8390d6c77b8a4b8aa",
+        "https://t6.tianditu.gov.cn/DataServer?T=img_c&x={x}&y={y}&l={z}&tk=3b659aefecf870a8390d6c77b8a4b8aa",
+        "https://t7.tianditu.gov.cn/DataServer?T=img_c&x={x}&y={y}&l={z}&tk=3b659aefecf870a8390d6c77b8a4b8aa"
+      ],
       "tileSize": 256
     },
     "yqgs": {
@@ -35,11 +54,16 @@
   "sprite": "https://shaanxi.tianditu.gov.cn/ServiceSystem/Tile/rest/service/sxww2022Geo/KLSZfloFZoYooU*g/VectorTileServer/default/sprites/sprite",
   "layers": [
     {
+      "id": "tdtimg-layer",
+      "name": "影像底图",
+      "type": "raster",
+      "source": "tdtimg"
+    },
+    {
       "id": "tdtsximg-layer",
       "name": "影像底图",
       "type": "raster",
       "source": "tdtsximg",
-
       "metadata": {
         "isBaseMap": true
       },

@@ -29,14 +29,14 @@
     "custom-dem": {
       "type": "raster-dem",
       "encoding": "mapbox",
-      "tiles": ["terrain/mapbox_4490_512/{z}/{x}/{y}.png"],
+      "tiles": ["${appUrl}/terrain/mapbox_4490_512/{z}/{x}/{y}.png"],
       "tileSize": 512,
       "minzoom": 5,
       "maxzoom": 10,
       "zoomOffset": -1
     }
   },
-  "current": "tdt_img",
+  "current": "tdtsx_rh",
   "baseMaps": [
     {
       "id": "111",
@@ -68,7 +68,7 @@
     },
     {
       "id": "tdtsx_img",
-      "name": "影像",
+      "name": "省影像",
       "type": "raster",
       "icon": "/img/basemaps/image.png",
       "style": {
@@ -120,7 +120,7 @@
       "subLayers": [
         {
           "id": "tdtsximglabel-layer",
-          "name": "地名",
+          "name": "注记",
           "layerIds": ["tdtsximglabel-layer"]
         }
       ]
@@ -177,7 +177,8 @@
         {
           "id": "tdtimglabel-layer",
           "name": "地名1",
-          "layerIds": ["tdtimglabel-layer"]
+          "layerIds": ["tdtimglabel-layer"],
+          "visible": true
         }
       ],
       "version": 8
@@ -185,9 +186,23 @@
     {
       "id": "tdtsx_rh",
       "name": "融合底图",
-      "type": "vector",
       "icon": "/img/basemaps/tdt_img.png",
-      "style": "/data/tdtsxMap.json",
+      "style": "${appUrl}/data/tdtsxMap.json",
+      "subLayers": [
+        {
+          "id": "tdtsx_rh-layer",
+          "name": "地名1",
+          "layerIds": ["tdtsximg-layer", "you-*", "POI_*", "地铁线"],
+          "visible": true
+        }
+      ],
+      "version": 8
+    },
+    {
+      "id": "tdtsx_yj_rh",
+      "name": "应急融合底图",
+      "icon": "/img/basemaps/tdt_img.png",
+      "style": "${appUrl}/data/yjyxsl.json",
       "version": 8
     }
   ],
@@ -195,7 +210,7 @@
     "sources": {
       "shaanxi_boundy_source": {
         "type": "geojson",
-        "data": "/data/shaanxi.json"
+        "data": "${appUrl}/data/shaanxi.json"
       }
     },
     "layers": [
@@ -207,6 +222,9 @@
         "paint": {
           "line-color": "#04d4e3",
           "line-width": ["interpolate", ["linear"], ["zoom"], 12, 3, 14, 2]
+        },
+        "layout": {
+          "visibility": "visible"
         }
       }
     ]

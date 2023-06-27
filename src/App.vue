@@ -8,14 +8,14 @@
     <template #right-bottom="{ map, mapConfig }">
       <div class="right-bottom-panel-container">
         <div class="nav-toolbar">
-          <!-- <Measure :map="map"></Measure> -->
-          <!-- <Navigation :map="map"></Navigation> -->
           <div class="terrain-control" :class="{ isTerrain: terrainVisible }"></div>
           <BaseMapSwitch :map="map" :mapConfig="mapConfig"></BaseMapSwitch>
         </div>
       </div>
     </template>
   </SBaseMap>
+
+  <div id="adb" style="width: 100%; height: 100%"></div>
 </template>
 <script setup lang="ts">
 import { ref, onMounted, computed } from "vue";
@@ -24,8 +24,8 @@ import type { Map } from "@lib/index";
 import type { PointLike } from "mapbox-gl";
 onMounted(async () => {});
 
-let mapconfigUrl = ref("configs/map3857.json");
 // let mapconfigUrl = ref("configs/map3857.json");
+let mapconfigUrl = ref("configs/map4490.json");
 let terrainVisible = ref(false);
 let map: Map;
 let mapRef = ref<Map>(null as unknown as Map);
@@ -140,6 +140,23 @@ const maploaded = (mapInstance: Map) => {
     },
   });
 };
+
+// const { mapboxgl } = window;
+onMounted(() => {
+  // let mapIn = new mapboxgl.Map({
+  //   //@ts-ignore
+  //   epsg: "4490",
+  //   container: "adb",
+  //   style: "/data/tdtsxMap.json",
+  //   // style: "https://shaanxi.tianditu.gov.cn/ServiceSystem/Tile/rest/service/sxww2022Geo/p3nuxoXfdSvngrI2/VectorTileServer/styles/default.json",
+  //   center: [108.74, 35.5],
+  //   zoom: 6.2,
+  //   pitch: 0,
+  //   minZoom: 1,
+  //   maxZoom: 17,
+  //   dragRotate: true,
+  // });
+});
 </script>
 <style scoped>
 .logo {

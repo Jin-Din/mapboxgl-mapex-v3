@@ -26,6 +26,8 @@ export default defineConfig(({ command, mode }) => {
       dts({
         insertTypesEntry: true,
         copyDtsFiles: false,
+        // libFolderPath: "lib",
+        // include: ["lib"],
       }),
       codeObfuscator(command === "build"),
       // codeObfuscatorPlugin(command === "build"),
